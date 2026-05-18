@@ -18,6 +18,19 @@
 <button onclick="send()">Send</button>
 
 <script>
+const API_KEY = "YOUR_KEY";
+document.getElementById("input").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") send();
+});
+
+async function send() {
+  const input = document.getElementById("input");
+  const chat = document.getElementById("chat");
+
+  const question = input.value;
+  chat.innerHTML += `<div class="user"><b>You:</b> ${question}</div>`;
+  input.value = "";
+
 const API_KEY = "AIzaSyAa6GXdm83TWkgOGwJyr_C4nO6OXBBCo8c";
 
 async function send() {
@@ -58,10 +71,18 @@ Context:
 - Data is updated regularly and reflects DC performance across regions
 
 Guidelines:
-- Use business-friendly language (avoid technical jargon)
-- Prioritise insights over definitions
-- Suggest possible causes (e.g. labour shortages, demand spikes, inefficiencies)
-- Where relevant, recommend what the user should investigate next
+- Be concise and structured
+- Focus on operational drivers and insights
+- Avoid generic definitions
+
+Always respond in this format:
+
+1. What it means (short explanation)
+2. Likely drivers (bullet points)
+3. What to check next (actions)
+
+Keep responses short and practical.
+
 
 Example reasoning:
 - A drop in productivity may be driven by labour availability, process inefficiencies, or volume mix
