@@ -5,29 +5,57 @@
   <style>
     body { font-family: Arial; margin: 10px; }
     #chat { height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
-    .user { color: blue; }
-    .bot { color: green; }
+    .user { color: blue; margin-bottom: 5px; }
+    .bot { color: green; margin-bottom: 10px; }
+    input { margin-top: 5px; }
   </style>
 </head>
 <body>
 
 <h3>AI Assistant</h3>
+
+<!-- ✅ API Key Input -->
+<input id="apikey" placeholder="Enter API Key here" style="width:70%">
+<button onclick="setKey()">Set API Key</button>
+
+<br><br>
+
+<!-- ✅ Chat window -->
 <div id="chat"></div>
 
+<!-- ✅ Chat input -->
 <input id="input" placeholder="Ask a question..." style="width:80%">
 <button onclick="send()">Send</button>
 
 <script>
 let API_KEY = "";
 
-// ✅ Wait for page load before adding Enter support
+// ✅ Set API key from input
+function setKey() {
+  API_KEY = document.getElementById("apikey").value.trim();
+
+  if (API_KEY) {
+    alert("✅ API key set successfully");
+  } else {
+    alert("⚠️ Please enter a valid API key");
+  }
+}
+
+// ✅ Enable Enter key
 document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("input").addEventListener("keypress", function(e) {
     if (e.key === "Enter") send();
   });
 });
 
+// ✅ Main send function
 async function send() {
+
+  if (!API_KEY) {
+    alert("⚠️ Please enter your API key first");
+    return;
+  }
+
   const input = document.getElementById("input");
   const chat = document.getElementById("chat");
 
@@ -36,6 +64,10 @@ async function send() {
 
   chat.innerHTML += `<div class="user"><b>You:</b> ${question}</div>`;
   input.value = "";
+
+  // ✅ Show loading
+  const loadingId = "loading-" + Date.now();
+  chat.innerHTML += `<div class="bot" id="${loadingId}"><i>Thinking...</i></div>`;
 
   try {
     const response = await fetch(
@@ -48,29 +80,11 @@ async function send() {
             {
               parts: [
                 {
-                  text: `You are a Distribution Centre (DC) Reporting and Analytics Lead supporting business users in understanding operational performance from a Power BI dashboard.
+                  text: `You are a Distribution Centre (DC) Reporting and Analytics Lead.
 
-Your role is to:
-- Explain performance trends clearly and concisely
-- Focus on operational drivers (volume, productivity, cost, service levels)
-- Translate data into actionable insights
-- Highlight potential root causes and next steps
+Explain answers using business-friendly language.
 
-Context:
-- Operations: Warehouse / Distribution Centre
-- Key metrics include:
-    - Volume (units handled, inbound/outbound)
-    - Labour productivity (units per hour)
-    - Cost per unit
-    - Service levels (on-time dispatch, fill rates)
-    - Inventory levels and movements
-
-Guidelines:
-- Be concise and structured
-- Focus on operational drivers and insights
-- Avoid generic definitions
-
-Always respond in this format:
+Always structure responses as:
 
 1. What it means
 2. Likely drivers
@@ -93,21 +107,3 @@ ${question}`
 
     if (data.candidates && data.candidates.length > 0) {
       const parts = data.candidates[0]?.content?.parts;
-      if (parts && parts.length > 0 && parts[0].text) {
-        reply = parts[0].text;
-      }
-    } else if (data.error) {
-      reply = "Error: " + data.error.message;
-    }
-
-    chat.innerHTML += `<div class="bot"><b>AI:</b> ${reply}</div>`;
-
-  } catch (error) {
-    chat.innerHTML += `<div class="bot"><b>Error:</b> ${error.message}</div>`;
-    console.error(error);
-  }
-}
-</script>
-
-</body>
-</html>
