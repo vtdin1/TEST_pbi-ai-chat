@@ -1,38 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI Chat POC</title>
+  <title>DC AI Assistant</title>
   <style>
     body { font-family: Arial; margin: 10px; }
-    #chat { height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
+    #chat { height: 320px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
     .user { color: blue; margin-bottom: 5px; }
     .bot { color: green; margin-bottom: 10px; }
+    input { margin-top: 5px; }
   </style>
 </head>
 <body>
 
-<h3>AI Assistant</h3>
+<h3>DC Analytics AI Assistant</h3>
 
-<!-- ✅ API Key input -->
+<!-- ✅ API Key Input -->
 <input id="apikey" placeholder="Enter API Key" style="width:70%">
 <button onclick="setKey()">Set API Key</button>
 
 <br><br>
 
+<!-- ✅ Chat Window -->
 <div id="chat"></div>
 
-<input id="input" placeholder="Ask a question..." style="width:80%">
+<!-- ✅ Chat Input -->
+<input id="input" placeholder="Ask about DC performance..." style="width:80%">
 <button onclick="send()">Send</button>
 
 <script>
-// ✅ IMPORTANT: use let (not const)
 let API_KEY = "";
 
-// ✅ Function must exist BEFORE it's called
+// ✅ Set API key
 function setKey() {
   API_KEY = document.getElementById("apikey").value.trim();
-
-  console.log("API KEY SET:", API_KEY);
 
   if (API_KEY) {
     alert("✅ API key set");
@@ -41,7 +41,7 @@ function setKey() {
   }
 }
 
-// ✅ Enable Enter key
+// ✅ Enter key support
 document.getElementById("input").addEventListener("keypress", function(e) {
   if (e.key === "Enter") send();
 });
@@ -62,6 +62,10 @@ async function send() {
   chat.innerHTML += `<div class="user"><b>You:</b> ${question}</div>`;
   input.value = "";
 
+  // ✅ Show loading
+  const loadingId = "load-" + Date.now();
+  chat.innerHTML += `<div class="bot" id="${loadingId}"><i>Thinking...</i></div>`;
+
   try {
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=" + API_KEY,
@@ -73,7 +77,43 @@ async function send() {
             {
               parts: [
                 {
-                  text: question
+                  text: `
+You are a Distribution Centre (DC) Reporting and Analytics Lead supporting business users in understanding operational performance from a Power BI dashboard.
+
+Your role is to:
+- Explain performance trends clearly and concisely
+- Focus on operational drivers (volume, productivity, cost, service levels)
+- Translate data into actionable insights
+- Highlight potential root causes and next steps
+
+Context:
+- Operations: Warehouse / Distribution Centre
+- Key metrics include:
+    - Volume (units handled, inbound/outbound)
+    - Labour productivity (units per hour)
+    - Cost per unit
+    - Service levels (on-time dispatch, fill rates)
+    - Inventory levels and movements
+
+Guidelines:
+- Be concise and structured
+- Focus on operational drivers and insights
+- Avoid generic or unrelated interpretations
+- Only interpret terms in a DC operational context
+- Do NOT assume meanings outside logistics/warehouse operations
+
+Always respond in this format:
+
+1. What it means
+2. Likely drivers
+3. What to check next
+
+If the question cannot be answered using DC operational context, respond:
+"I don’t have enough relevant operational data to answer that."
+
+Question:
+${question}
+`
                 }
               ]
             }
@@ -93,13 +133,14 @@ async function send() {
         reply = parts[0].text;
       }
     } else if (data.error) {
-      reply = "Error: " + data.error.message;
+      reply = "⚠️ Error: " + data.error.message;
     }
 
-    chat.innerHTML += `<div class="bot"><b>AI:</b> ${reply}</div>`;
+    document.getElementById(loadingId).innerHTML = `<b>AI:</b> ${reply}`;
 
   } catch (error) {
-    chat.innerHTML += `<div class="bot"><b>Error:</b> ${error.message}</div>`;
+    document.getElementById(loadingId).innerHTML =
+      `<b>Error:</b> ${error.message}`;
     console.error(error);
   }
 }
@@ -107,3 +148,4 @@ async function send() {
 
 </body>
 </html>
+``
