@@ -80,12 +80,7 @@ async function getPowerBIData() {
         queries: [
           {
             query: `
-EVALUATE 
-SUMMARIZECOLUMNS(
-  'Test_Data'[Act_GI_Date],
-  "TotalDels", SUM('Test_Data'[Dels]),
-  "TotalLines", SUM('Test_Data'[Lines])
-)
+EVALUATE 'Test_Data'
 `
           }
         ]
@@ -144,11 +139,11 @@ if (!DATASET_ID) {
     // ✅ Convert to text
 
 const DATA_CONTEXT = dataset
-  .slice(0, 20)
+  .slice(0, 100)
   .map(r => {
     const date = r.Act_GL_Date || r[0];
-    const dels = r.TotalDels || r[1];
-    const lines = r.TotalLines || r[2];
+    const dels = r.Dels || r[1];
+    const lines = r.Lines || r[2];
     return `${date}: ${dels} dels, ${lines} lines`;
   })
   .join("\n");
