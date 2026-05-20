@@ -26,6 +26,12 @@
 
 <br><br>
 
+<!-- ✅ Dataset ID -->
+<input id="datasetid" placeholder="Paste Power Dataset ID">
+<button onclick="setDatasetID()">Set Dataset ID</button>
+
+<br><br>
+
 <div id="chat"></div>
 
 <input id="input" placeholder="Ask about DC performance..." style="width:80%">
@@ -33,7 +39,8 @@
 
 <script>
 let API_KEY = "";
-let PBI_TOKEN = "";
+let PBI_TOKEN = ""
+let DATASET_ID = "";
 
 // ✅ Set Gemini key
 function setKey() {
@@ -47,6 +54,12 @@ function setPBToken() {
   alert(PBI_TOKEN ? "✅ Power BI token set" : "⚠️ Enter valid token");
 }
 
+// ✅ Set Dataset ID
+function setDatasetID() {
+  DATASET_ID = document.getElementById("datasetid").value.trim();
+  alert(DATASET_ID ? "✅ Dataset ID set" : "⚠️ Enter valid Dataset ID");
+}
+
 // ✅ Enter key support
 document.getElementById("input").addEventListener("keypress", function(e) {
   if (e.key === "Enter") send();
@@ -55,14 +68,12 @@ document.getElementById("input").addEventListener("keypress", function(e) {
 // ✅ Fetch Power BI dataset
 async function getPowerBIData() {
 
-  const datasetId = "bd106708-e69d-4078-be89-4763fa322811";
-
   const response = await fetch(
-    `https://api.powerbi.com/v1.0/myorg/datasets/${datasetId}/executeQueries`,
+    `https://api.powerbi.com/v1.0/myorg/datasets/${DATASET_ID}/executeQueries`,
     {
       method: "POST",
       headers: {
-        "Authorization": PBI_TOKEN,
+        "Authorization": `Bearer ${PBI_TOKEN}',
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -72,7 +83,7 @@ async function getPowerBIData() {
 EVALUATE 
 SUMMARIZECOLUMNS(
   'Test_Data'[Act_GI_Date],
-  "Total_Dels", SUM('Test_Data'[Dels]
+  "Total_Dels", SUM('Test_Data'[Dels]),
   "Total_Lines", SUM('Test_Data'[Lines])
 )
 `
@@ -82,8 +93,21 @@ SUMMARIZECOLUMNS(
     }
   );
 
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("Power BI API Error:", response.status, text);
+    throw new Error(`Power BI error ${response.status}`);
+  }
+  
+if (!response.ok) {
+  const text = await response.text();
+  console.error("Gemini API Error:", response.status, text);
+  throw new Error(`Gemini error ${response.status}`);
+}
+
+  
   const data = await response.json();
-  console.log("PBI DATA:", data);
+
 
   return data.results[0].tables[0].rows;
 }
@@ -94,6 +118,12 @@ async function send() {
     alert("⚠️ Please set BOTH API key and Power BI token");
     return;
   }
+
+  
+if (!DATASET_ID) {
+  alert("⚠️ Please set Dataset ID");
+  return;
+}
 
   const input = document.getElementById("input");
   const chat = document.getElementById("chat");
@@ -114,7 +144,7 @@ async function send() {
     // ✅ Convert to text
     const DATA_CONTEXT = dataset
       .slice(0, 20)
-      .map(r => `${r.Act_GL_Date}: ${r.TotalLines} lines`)
+      .map(r => `${r.Act_GI_Date}: ${r.Total_Lines} lines`)
       .join("\n");
 
     // ✅ Send to Gemini
