@@ -138,15 +138,17 @@ if (!DATASET_ID) {
 
     // ✅ Convert to text
 
+
 const DATA_CONTEXT = dataset
-  .slice(0, 100)
+  .slice(0, 20)
   .map(r => {
-    const date = r.Act_GL_Date || r[0];
-    const dels = r.Dels || r[1];
-    const lines = r.Lines || r[2];
+    const date = r["Test_Data[Act_GI_Date]"] || r[0];
+    const dels = r["Test_Data[Dels]"] || r[1];
+    const lines = r["Test_Data[Lines]"] || r[2];
     return `${date}: ${dels} dels, ${lines} lines`;
   })
   .join("\n");
+
 
     // ✅ Send to Gemini
     const response = await fetch(
