@@ -83,8 +83,8 @@ async function getPowerBIData() {
 EVALUATE 
 SUMMARIZECOLUMNS(
   'Test_Data'[Act_GI_Date],
-  "Total_Dels", SUM('Test_Data'[Dels]),
-  "Total_Lines", SUM('Test_Data'[Lines])
+  "TotalDels", SUM('Test_Data'[Dels]),
+  "TotalLines", SUM('Test_Data'[Lines])
 )
 `
           }
@@ -142,10 +142,16 @@ if (!DATASET_ID) {
     const dataset = await getPowerBIData();
 
     // ✅ Convert to text
-    const DATA_CONTEXT = dataset
-      .slice(0, 20)
-      .map(r => `${r.Act_GI_Date}: ${r.Total_Lines} lines`)
-      .join("\n");
+
+const DATA_CONTEXT = dataset
+  .slice(0, 20)
+  .map(r => {
+    const date = r.Act_GL_Date || r[0];
+    const dels = r.TotalDels || r[1];
+    const lines = r.TotalLines || r[2];
+    return `${date}: ${dels} dels, ${lines} lines`;
+  })
+  .join("\n");
 
     // ✅ Send to Gemini
     const response = await fetch(
