@@ -71,8 +71,9 @@ async function getPowerBIData() {
             query: `
 EVALUATE 
 SUMMARIZECOLUMNS(
-  'Fact'[Act_GL_Date],
-  "TotalLines", SUM('Fact'[Lines])
+  'Test_Data'[Act_GI_Date],
+  "Total_Dels", SUM('Test_Data'[Dels]
+  "Total_Lines", SUM('Test_Data'[Lines])
 )
 `
           }
